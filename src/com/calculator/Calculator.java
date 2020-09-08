@@ -163,7 +163,7 @@ public class Calculator {
 	  return stack;
   }
   
-  public String repStr(String origin, String old, String actual){
+  public String repStr(String origin, String old, String actual) throws CalculatorException{
 
     int g         = 0;
     int charge    = 0;
@@ -176,25 +176,29 @@ public class Calculator {
         else 
           charge=0;
 		  }
-      if(g==(origin.length()-1)){
-        this.exceptionRempCad=true;
-        return c;
+      if(g == (origin.length()-1)){
+        throw new CalculatorException("Error in Calculator.repStr(String origin, String old, String actual): string not found");
       }
-		g++;
-    }while(cuenta<l);
+		  g++;
+    }
+    while(charge<lengthOld);
+
     g--;
-    String x, y, z;
-    x=c.substring(0,g);
-    y=c.substring(g+l);
-    z=x+n+y;
-    return z;
+    String firstPart, lastPart, returnedString;
+
+    firstPart      = origin.substring(0,g);
+    lastPart       = origin.substring(g+lengthOld);
+    returnedString = firstPart+actual+lastPart;
+
+    return returnedString;
   }
+  
   public String removeZeros(String str){
     String intPart;
     String floatPart;
     int i=0;
     
-    if(str.length() == 0) throw new Exception("cadena vacia en Algebra.removeZeros()") ;
+    if(str.length() == 0) throw new Exception("Error in Calculator.removeZeros(String str): empty string") ;
     
     while((str.charAt(i)) == '0'){
       
@@ -215,48 +219,77 @@ public class Calculator {
     i=intPart.length()-1;
 
     while((intPart.charAt(i)) == '0'){
-    i--;
-    if(i==(intPart.length()-1)){
-      floatPart=intPart.substring(0,intPart.length());
+      i--;
+      if(i==(intPart.length()-1)){
+        floatPart=intPart.substring(0,intPart.length());
+      }
+      else{
+        if((intPart.charAt(i))=='.')
+          floatPart=intPart.substring(0,i);
+        else 
+          floatPart=intPart.substring(0,i+1);
+      }
     }
-    else{
-      if((intPart.charAt(i))=='.')floatPart=intPart.substring(0,i);
-      else floatPart=intPart.substring(0,i+1);
-    }
-    }
-    return c;
+    return floatPart;
   }
   
-  public double resolver(String cadena){
-      //resuelve la operacion cadena y devuelve su resultado double si no tiene parentesis
+  public double resolve(String str) throws CalculatorException{
     do{
-      int op;
-      op=buscarC(cadena, '*');
-	    if(op<0) op=buscarC(cadena, '/');
-	    if(op<0) op=buscarC(cadena, '-');
-	    if(op<0) op=buscarC(cadena, '+');
-	    if(op==-1) return this.LAR(cadena);
-	    
-		  int i=op-1;
-	    int m=9;
-	    String p="";
-	    String s="";
+
+      int operation = 0;
+
+      try{
+        operation = findChar(str, '*');
+      }
+      catch(CalculatorException multipliE){
+        try {
+          operation = findChar(str, '/');
+        } catch (CalculatorException divideE) {
+          try {
+            operation = findChar(str, '-')
+          } catch (CalculatorException lessE) {
+            try {
+              operation = findChar(str, '+');
+            } catch (CalculatorException plusE) {
+              try{
+                return stringToDouble(str);
+              }
+              catch(CalculatorException toDoubleException){
+                throw new CalculatorException("Error in Calculator.resolve(String str): it can't resolve the operation");
+              }
+            }
+          }
+        }
+      }
+      
+		  int index = operation-1;
+	    int m = 9;
+	    String firstOperator = "";
+	    String secondOperator = "";
 	    
 	    try{
-	      while(this.esDigito(cadena.charAt(i)) || (cadena.charAt(i) =='.')){
-	          if(i==0)break;
-		        m--;
-		        i--;
+	      while(isDigit(str.charAt(index)) || (str.charAt(index) == '.')){
+          
+          firstOperator = str.charAt(index)+firstOperator;
+          
+          if(index == 0)
+              break;
+
+          m--;
+          index--;
 	      }
 	    }
 	    catch(StringIndexOutOfBoundsException e){
-	      System.err.println("error en la linea 176");
+	      throw new CalculatorException("Error in Calculator.resolve(String str): fail to copy the first operator");
 	      return - 1;
       }
-      if(i!=0)i++;
-	    p=cadena.substring(i,op);
-	    m=0;
-	    i=op+1;
+
+      if(index != 0)
+        index++;
+
+        p = str.substring(index,op);
+        m = 0;
+        index = op+1;
 	    try{
 	      while((this.esDigito(cadena.charAt(i)))||(cadena.charAt(i)=='.')){
 	        if(i== cadena.length()-1)break;
