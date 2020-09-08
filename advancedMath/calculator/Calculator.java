@@ -1,55 +1,69 @@
-package src.com.calculator;
+package advancedMath.calculator;
 import java.math.*;
 import java.lang.StringIndexOutOfBoundsException;
-import src.com.exceptions.CalculatorException;
+import advancedMath.exceptions.CalculatorException;
 
 public class Calculator {
-  private String cadena;
-  private boolean exceptionRempCad=false;
-  private int PAbierto;
-  private int PCerrado;
-  private String buferDeQuitarParetesis;
   
-  public double resolver2(String cadena){
-    /*resuelve una cadena que contenga una operacion a realizar con parentesis*/
-      String cadSP;
-      String cadCP;
-      String res;
-      double r;
-      this.buferDeQuitarParetesis = cadena;
+  public double resolver2(String str) throws CalculatorException{
+
+    String withoutParentesis = "";
+    String withParentesis    = "";
+    String answerString      = "";
+    String buffer            = str;
+    int indexOpenParentesis   = 0;
+    int indexClosedParentesis = 0;
+    double answerDouble = 0;
+    double finalAnswer  = 0;
+    boolean thereIsParentesis = false;
       
-      do{
-          //obtenemos los dos indices de los parentesis
-          for(int i=0;i<this.buferDeQuitarParetesis.length();i++){
-              if(this.buferDeQuitarParetesis.charAt(i)=='('){
-                  this.PAbierto = i;
-              }
-              if(this.buferDeQuitarParetesis.charAt(i)==')'){
-                  this.PCerrado = i;
-                  break;
-              }
+    do{
+
+      for(int i = 0;i < buffer.length();i++){
+          if( buffer.charAt(i) == '(' ){
+              indexOpenParentesis = i;
           }
-          
-      //recortamos la cadena delimitada por los parentesis, la resolvemos y sustituimos por su resultado
-      cadCP = this.buferDeQuitarParetesis.substring(this.PAbierto, (this.PCerrado +1));
-      cadSP = this.buferDeQuitarParetesis.substring((this.PAbierto+1), this.PCerrado);
-      System.out.println(cadCP);
-      System.out.println(cadSP);
-      
-      //verificamos que cadSparentesis no lleve algun parentesis, puesto que esto genera un error
-      if((this.buscarC(cadSP, '(')!= -1)||((this.buscarC(cadSP, ')')!= -1)))
-      {   System.out.println("error en la variable casSParentesis de la funcion resolver2");
-          return 0;}
-      
-      r = this.resolver(cadSP);
-      res = this.RAL(r);
-      this.buferDeQuitarParetesis = this.rempCad(this.buferDeQuitarParetesis, cadCP, res);
+          if( buffer.charAt(i) == ')' ){
+              indexClosedParentesis = i;
+              break;
+          }
       }
-      while(this.buscarC(this.buferDeQuitarParetesis, '(') != -1);
+        
+      withParentesis    = buffer.substring(indexOpenParentesis, indexClosedParentesis + 1);
+      withoutParentesis = buffer.substring((indexOpenParentesis + 1), indexClosedParentesis);
       
-      return this.resolver(this.buferDeQuitarParetesis);
+      try {
+        answerDouble = resolve(withoutParentesis);
+        answerString = this.doubleToString(answerDouble);
+        buffer       = this.repStr(buffer, withParentesis, answerString);
+      } 
+      catch(CalculatorException answerException) {
+        throw new CalculatorException("Error in Calculator.resolveParentesis(String str): Failed to replace the answer in the original expression");
+      }
+  
+      thereIsParentesis = isChar(buffer, '(');
+    }
+    while(thereIsParentesis);
+    
+    try {
+      finalAnswer = resolve(buffer);
+    } 
+    catch(CalculatorException finalAnswerE) {
+      throw new CalculatorException("Error in Calculator.resolveParentesis(String str): Failed to put the final answer");
+    }
+    return finalAnswer;
   }
   
+  public boolean isChar(String str, char c){
+    try {
+      findChar(str, c);
+    } catch (CalculatorException isException) {
+      return false;
+    }
+
+    return true;
+  }
+
   public int findChar(String str, char c) throws CalculatorException {
 
     if(str.length() == 0)
@@ -68,7 +82,10 @@ public class Calculator {
   }
   
   public boolean isDigit(char c){
-    ((c>= '0') && (c<= '9')) ? return true : return false;
+    if(c >= '0' && c <= '9')
+      return true;
+
+    return false;
   }
   
   public String[] divideStr(String str, char c)throws CalculatorException{
@@ -193,12 +210,12 @@ public class Calculator {
     return returnedString;
   }
   
-  public String removeZeros(String str){
-    String intPart;
-    String floatPart;
-    int i=0;
+  public String removeZeros(String str) throws CalculatorException{
+    String intPart   = "" ;
+    String floatPart = "" ;
+    int i = 0;
     
-    if(str.length() == 0) throw new Exception("Error in Calculator.removeZeros(String str): empty string") ;
+    if(str.length() == 0) throw new CalculatorException("Error in Calculator.removeZeros(String str): empty string") ;
     
     while((str.charAt(i)) == '0'){
       
@@ -237,6 +254,14 @@ public class Calculator {
     do{
 
       int operation = 0;
+      int index     = 0;
+      double firstOperatorDouble  = 0;
+      double secondOperatorDouble = 0;
+      double answerDouble         = 0;
+      String firstOperator   = "";
+      String secondOperator  = "";
+      String expressionString = "";
+      String answerString    = "";
 
       try{
         operation = findChar(str, '*');
@@ -246,7 +271,7 @@ public class Calculator {
           operation = findChar(str, '/');
         } catch (CalculatorException divideE) {
           try {
-            operation = findChar(str, '-')
+            operation = findChar(str, '-');
           } catch (CalculatorException lessE) {
             try {
               operation = findChar(str, '+');
@@ -262,10 +287,8 @@ public class Calculator {
         }
       }
       
-		  int index = operation-1;
-	    int m = 9;
-	    String firstOperator = "";
-	    String secondOperator = "";
+		  index = operation-1;
+	    
 	    
 	    try{
 	      while(isDigit(str.charAt(index)) || (str.charAt(index) == '.')){
@@ -275,49 +298,57 @@ public class Calculator {
           if(index == 0)
               break;
 
-          m--;
           index--;
 	      }
 	    }
 	    catch(StringIndexOutOfBoundsException e){
 	      throw new CalculatorException("Error in Calculator.resolve(String str): fail to copy the first operator");
-	      return - 1;
       }
 
-      if(index != 0)
-        index++;
+        index = operation+1;
 
-        p = str.substring(index,op);
-        m = 0;
-        index = op+1;
 	    try{
-	      while((this.esDigito(cadena.charAt(i)))||(cadena.charAt(i)=='.')){
-	        if(i== cadena.length()-1)break;
-		      m++;
-		      i++;
+	      while(isDigit(str.charAt(index)) || (str.charAt(index) == '.')){
+
+          secondOperator = secondOperator + str.charAt(index);
+
+          if(index == str.length()-1)
+            break;
+		      index++;
 	      }
 	    }
 	    catch(StringIndexOutOfBoundsException e){
-	      System.err.println("error en la linea 188");
-	      return - 1;
-      };
-	    if(i==cadena.length()-1)i++;
-	    s=cadena.substring((op+1),i);
+	      throw new CalculatorException("Error in Calculator.resolve(String str): Failed to copy the second operator");
+      }
+      
+	    try {
+        firstOperatorDouble  = stringToDouble(firstOperator);
+        secondOperatorDouble = stringToDouble(secondOperator);
+      } 
+      catch(CalculatorException toDoubleException) {
+        throw new CalculatorException("Error in Calculator.resolve(String str): Failed to convert first or second operator");
+      }
 	    
-	    String v=p+cadena.charAt(op)+s;
-	    double x, y, r;
-	    x=this.LAR(p);
-	    y=this.LAR(s);
+      expressionString = firstOperator+str.charAt(operation)+secondOperator;
 	    
-	    switch(cadena.charAt(op)){
-		    case '*': r=x*y; break;
-	      case '/': r=x/y; break;
-		    case '+': r=x+y; break;
-		    case '-': r=x-y; break;
-		    default: r=0;
-	    }
-	    String res=this.RAL(r);
-	    cadena=rempCad(cadena, v, res);
+	    switch(str.charAt(operation)){
+		    case '*': answerDouble = firstOperatorDouble * secondOperatorDouble; break;
+	      case '/': answerDouble = firstOperatorDouble / secondOperatorDouble; break;
+		    case '+': answerDouble = firstOperatorDouble + secondOperatorDouble; break;
+		    case '-': answerDouble = firstOperatorDouble - secondOperatorDouble; break;
+		    default: answerDouble  = 0;
+      }
+      
+      answerString = doubleToString(answerDouble);
+      
+      try {
+        str = repStr(str, expressionString, answerString);
+      } 
+      catch(CalculatorException replaceException) {
+        throw new CalculatorException("Error in Calculator.resolve(String str): Failed to replace the answer string in the original expression");
+      }
+      
+      
     }while(true);
   }
 }

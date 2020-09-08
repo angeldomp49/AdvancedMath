@@ -1,4 +1,4 @@
-package src.com.exceptions;
+package advancedMath.exceptions;
 
 public class CalculatorException extends Exception{
 

@@ -1,4 +1,4 @@
-package src.com.Geometry;
+package advancedMath.geometry;
 
 public class Geometry {
     
