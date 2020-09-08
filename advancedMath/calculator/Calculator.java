@@ -1,5 +1,6 @@
 package advancedMath.calculator;
 import java.math.*;
+import java.text.DecimalFormat;
 import java.lang.StringIndexOutOfBoundsException;
 import advancedMath.exceptions.CalculatorException;
 
@@ -41,7 +42,7 @@ public class Calculator {
         throw new CalculatorException("Error in Calculator.resolveParentesis(String str): Failed to replace the answer in the original expression");
       }
   
-      thereIsParentesis = isChar(buffer, '(');
+      thereIsParentesis = thereIsChar(buffer, '(');
     }
     while(thereIsParentesis);
     
@@ -54,7 +55,7 @@ public class Calculator {
     return finalAnswer;
   }
   
-  public boolean isChar(String str, char c){
+  public boolean thereIsChar(String str, char c){
     try {
       findChar(str, c);
     } catch (CalculatorException isException) {
@@ -73,7 +74,7 @@ public class Calculator {
     
     while(str.charAt(index) != c){
       
-      if(index == str.length()){
+      if(index == str.length()-1){
         throw new CalculatorException("Error in findChar: character not found");
       }
       index++;
@@ -167,17 +168,22 @@ public class Calculator {
 		  stack += (subStrs[0].charAt(n)-48)*(pow(10, (length1-n-1)) );
     }
     
-    length2=subStrs[1].length();
+    length2 = subStrs[1].length();
     
-    if(length2==0){
+    if(length2 == 0){
       return stack;
     }
 	  else{
 	    for(int n=0;n<= length2-1;n++){
 		    stack+=(subStrs[1].charAt(n)-48)*(pow(10,(0-n-1)));
 	    }
-	  }
-	  return stack;
+    }
+    
+    double multiplierForReadondly = pow(10, length2);
+
+    double stackReadondlied = (Math.round(stack*multiplierForReadondly))/multiplierForReadondly;
+
+	  return stackReadondlied;
   }
   
   public String repStr(String origin, String old, String actual) throws CalculatorException{
@@ -305,7 +311,7 @@ public class Calculator {
 	      throw new CalculatorException("Error in Calculator.resolve(String str): fail to copy the first operator");
       }
 
-        index = operation+1;
+      index = operation+1;
 
 	    try{
 	      while(isDigit(str.charAt(index)) || (str.charAt(index) == '.')){
@@ -320,7 +326,7 @@ public class Calculator {
 	    catch(StringIndexOutOfBoundsException e){
 	      throw new CalculatorException("Error in Calculator.resolve(String str): Failed to copy the second operator");
       }
-      
+
 	    try {
         firstOperatorDouble  = stringToDouble(firstOperator);
         secondOperatorDouble = stringToDouble(secondOperator);
@@ -328,7 +334,7 @@ public class Calculator {
       catch(CalculatorException toDoubleException) {
         throw new CalculatorException("Error in Calculator.resolve(String str): Failed to convert first or second operator");
       }
-	    
+
       expressionString = firstOperator+str.charAt(operation)+secondOperator;
 	    
 	    switch(str.charAt(operation)){
@@ -351,5 +357,8 @@ public class Calculator {
       
     }while(true);
   }
+
+
+
 }
 
