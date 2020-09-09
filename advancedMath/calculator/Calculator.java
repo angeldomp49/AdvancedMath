@@ -1,58 +1,52 @@
 package advancedMath.calculator;
 import java.math.*;
-import java.text.DecimalFormat;
 import java.lang.StringIndexOutOfBoundsException;
 import advancedMath.exceptions.CalculatorException;
 
 public class Calculator {
   
-  public double resolver2(String str) throws CalculatorException{
+  public double resolveParenthesis(String str) throws CalculatorException{
 
-    String withoutParentesis = "";
-    String withParentesis    = "";
-    String answerString      = "";
-    String buffer            = str;
-    int indexOpenParentesis   = 0;
-    int indexClosedParentesis = 0;
-    double answerDouble = 0;
-    double finalAnswer  = 0;
-    boolean thereIsParentesis = false;
-      
+    String buffer           = str;
+    String actualExpression = "";
+    double partialResult = 0;
+    double finalResult   = 0;
+    boolean thereIsParenthesis = false;
+    
+      properlyClosedParenthesis(str);
+    
+
     do{
 
-      for(int i = 0;i < buffer.length();i++){
-          if( buffer.charAt(i) == '(' ){
-              indexOpenParentesis = i;
-          }
+      for(int i = 0;i <= buffer.length()-1;i++){
+
           if( buffer.charAt(i) == ')' ){
-              indexClosedParentesis = i;
-              break;
+
+            int k = i-1;
+
+            while(buffer.charAt(k) != '('){
+              actualExpression = buffer.charAt(k) + actualExpression;
+              k--;
+            }
+            break;
           }
       }
-        
-      withParentesis    = buffer.substring(indexOpenParentesis, indexClosedParentesis + 1);
-      withoutParentesis = buffer.substring((indexOpenParentesis + 1), indexClosedParentesis);
       
-      try {
-        answerDouble = resolve(withoutParentesis);
-        answerString = this.doubleToString(answerDouble);
-        buffer       = this.repStr(buffer, withParentesis, answerString);
-      } 
-      catch(CalculatorException answerException) {
-        throw new CalculatorException("Error in Calculator.resolveParentesis(String str): Failed to replace the answer in the original expression");
-      }
-  
-      thereIsParentesis = thereIsChar(buffer, '(');
+      partialResult = resolve(actualExpression);
+
+      System.out.println(actualExpression);
+      System.out.println(partialResult);
+      System.out.println(buffer);
+
+      buffer = repStr(buffer, "("+actualExpression+")", doubleToString(partialResult));
+      
+      thereIsParenthesis = thereIsChar(buffer, '(');
     }
-    while(thereIsParentesis);
+    while(thereIsParenthesis);
     
-    try {
-      finalAnswer = resolve(buffer);
-    } 
-    catch(CalculatorException finalAnswerE) {
-      throw new CalculatorException("Error in Calculator.resolveParentesis(String str): Failed to put the final answer");
-    }
-    return finalAnswer;
+    finalResult = resolve(buffer);
+    
+    return finalResult;
   }
   
   public boolean thereIsChar(String str, char c){
@@ -358,7 +352,28 @@ public class Calculator {
     }while(true);
   }
 
+  public boolean properlyClosedParenthesis(String str) throws CalculatorException{
+    int opened = 0 ;
 
+    for(int i = 0; i <= str.length()-1;i++){
+      if(str.charAt(i) == '('){
+        opened++;
+      }
+        
+      if(str.charAt(i) == ')'){
+        if(opened > 0){
+          opened--;
+        }
+        else{
+          throw new CalculatorException("String with not properly closed parenthesis");
+        }
+      }
+    }
+    if(opened > 0)
+        throw new CalculatorException("String with not properly closed parenthesis");
+
+    return true;
+  }
 
 }
 

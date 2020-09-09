@@ -4,7 +4,8 @@ import advancedMath.calculator.Calculator;
 import advancedMath.exceptions.CalculatorException;
 
 public class Test {
-    public void start(){
+
+    public void methodsWorking(){
 
         Calculator ct = new Calculator();
 
@@ -157,6 +158,28 @@ public class Test {
         }
         System.out.println("passed");
 
+        System.out.println("testing Calculator.properlyClosedParenthesis(String str) ...");
+        try {
+            ct.properlyClosedParenthesis("(2*3)-(5/2)");
+        }
+        catch(CalculatorException calcE) {
+            calcE.printStackTrace();
+        }
+        System.out.println("passed");
+
+        System.out.println("testing Calculator.resolveParenthesis(String str) ...");
+        try {
+            ct.resolveParenthesis("(2*3)-(5/2)");
+        }
+        catch(CalculatorException calcE) {
+            calcE.printStackTrace();
+        }
+        System.out.println("passed");
+
         System.out.println("test finish");
+    }
+
+    public void exceptionsLaunched(){
+
     }
 }
